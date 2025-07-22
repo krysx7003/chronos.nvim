@@ -6,7 +6,6 @@ M.should_save = true
 
 function M.setup()
 	M.load_timer()
-	print("Time: ", M.timer_count)
 	M.start_timer()
 
 	vim.api.nvim_create_autocmd("VimLeavePre", {
@@ -65,6 +64,10 @@ function M.start_timer()
 				require("lualine").refresh()
 			end)
 		)
+		vim.schedule(function()
+			print(string.format("Timer started at: %s | Count: %d", os.date("%H:%M:%S"), M.timer_count))
+			io.flush()
+		end)
 	end
 end
 
@@ -75,6 +78,11 @@ function M.stop_timer()
 		M.uv_timer:close()
 		M.uv_timer = nil
 	end
+
+	vim.schedule(function()
+		print(string.format("Timer stopped at: %s | Count: %d", os.date("%H:%M:%S"), M.timer_count))
+		io.flush()
+	end)
 end
 
 function M.no_save()
