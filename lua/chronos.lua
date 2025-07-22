@@ -50,9 +50,8 @@ function M.load_timer()
 	local timer_file = M.get_timer_file()
 	if vim.fn.filereadable(timer_file) == 1 then
 		local data = vim.json.decode(vim.fn.readfile(timer_file)[1])
-		M.timer = data.timer_count or 0
+		M.timer_count = data.timer_count or 0
 	end
-	return M.timer
 end
 
 function M.start_timer()
