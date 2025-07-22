@@ -62,7 +62,7 @@ function M.start_timer()
 			0,
 			60000,
 			vim.schedule_wrap(function()
-				M.update_time()
+				M.update_timer()
 				require("lualine").refresh()
 			end)
 		)
