@@ -17,7 +17,7 @@ function M.setup()
 	vim.api.nvim_create_autocmd("FocusLost", {
 		callback = function()
 			print("FocusLost")
-			M.start_timer()
+			M.stop_timer()
 		end,
 	})
 
