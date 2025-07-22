@@ -1,14 +1,26 @@
 local M = {}
-
-M.timer = 0
+M.timer_count = 0
+M.uv_timer = nil
+M.current_time = "00:00"
+M.should_save = true
 
 function M.setup()
 	M.load_timer()
+	print("Time: ", M.timer_count)
+	M.start_timer()
+
 	vim.api.nvim_create_autocmd("VimLeavePre", {
 		callback = function()
-			M.save_timer()
+			M.stop_timer()
 		end,
 	})
+end
+
+function M.update_timer()
+	local hours = M.timer_count / 60
+	local minutes = M.timer_count % 60
+	M.current_time = string.format("%02d:%02d", hours, minutes)
+	M.timer_count = M.timer_count + 1
 end
 
 local function get_timer_file()
@@ -29,7 +41,9 @@ end
 function M.save_timer()
 	local timer_file = get_timer_file()
 	local data = { timer_count = M.timer }
-	vim.fn.writefile({ vim.json.encode(data) }, timer_file)
+	if M.should_save then
+		vim.fn.writefile({ vim.json.encode(data) }, timer_file)
+	end
 end
 
 function M.load_timer()
@@ -39,6 +53,36 @@ function M.load_timer()
 		M.timer = data.timer_count or 0
 	end
 	return M.timer
+end
+
+function M.start_timer()
+	if not M.uv_timer then
+		M.uv_timer = vim.uv.new_timer()
+		M.uv_timer:start(
+			0,
+			60000,
+			vim.schedule_wrap(function()
+				M.update_time()
+				require("lualine").refresh()
+			end)
+		)
+		print(string.format("Timer started at: %s | Count: %d", os.date("%H:%M:%S"), M.timer_count))
+	end
+end
+
+function M.stop_timer()
+	M.save_timer()
+	if M.uv_timer and not M.uv_timer:is_closing() then
+		M.uv_timer:stop()
+		M.uv_timer:close()
+		M.uv_timer = nil
+	end
+	print(string.format("Timer stopped at: %s | Count: %d", os.date("%H:%M:%S"), M.timer_count))
+end
+
+function M.no_save()
+	M.should_save = false
+	print("Timer saving False")
 end
 
 return M
