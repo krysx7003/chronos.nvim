@@ -66,7 +66,6 @@ function M.start_timer()
 				require("lualine").refresh()
 			end)
 		)
-		print(string.format("Timer started at: %s | Count: %d", os.date("%H:%M:%S"), M.timer_count))
 	end
 end
 
@@ -77,12 +76,10 @@ function M.stop_timer()
 		M.uv_timer:close()
 		M.uv_timer = nil
 	end
-	print(string.format("Timer stopped at: %s | Count: %d", os.date("%H:%M:%S"), M.timer_count))
 end
 
 function M.no_save()
 	M.should_save = false
-	print("Timer saving False")
 end
 
 return M
