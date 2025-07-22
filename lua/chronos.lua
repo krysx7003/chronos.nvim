@@ -13,6 +13,24 @@ function M.setup()
 			M.stop_timer()
 		end,
 	})
+
+	vim.api.nvim_create_autocmd("FocusLost", {
+		callback = function()
+			print("FocusLost")
+			M.start_timer()
+		end,
+	})
+
+	vim.api.nvim_create_autocmd("FocusGained", {
+		callback = function()
+			print("FocusGained")
+			M.start_timer()
+		end,
+	})
+
+	vim.api.nvim_create_user_command("ChronosDisableSave", function()
+		M.should_save = false
+	end, {})
 end
 
 function M.update_timer()
@@ -83,10 +101,6 @@ function M.stop_timer()
 		print(string.format("Timer stopped at: %s | Count: %d", os.date("%H:%M:%S"), M.timer_count))
 		io.flush()
 	end)
-end
-
-function M.no_save()
-	M.should_save = false
 end
 
 return M
