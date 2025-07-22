@@ -39,7 +39,7 @@ end
 
 function M.save_timer()
 	local timer_file = M.get_timer_file()
-	local data = { timer_count = M.timer }
+	local data = { timer_count = M.timer_count }
 	if M.should_save then
 		vim.fn.writefile({ vim.json.encode(data) }, timer_file)
 	end
