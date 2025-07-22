@@ -12,8 +12,8 @@ function M.setup()
 end
 
 local function get_timer_file()
-	local project_root = vim.fn.getcwd()
-	local timer_file = project_root .. "/.nvim/.nvim_timer_data.json"
+	local project_root = vim.fn.getcwd() .. "/.nvim"
+	local timer_file = project_root .. "/.nvim_timer_data.json"
 	if vim.fn.filereadable(timer_file) == 0 then
 		local data = { timer_count = 0 }
 		vim.fn.writefile({ vim.json.encode(data) }, timer_file)
