@@ -23,7 +23,7 @@ function M.update_timer()
 	M.timer_count = M.timer_count + 1
 end
 
-local function get_timer_file()
+function M.get_timer_file()
 	local nvim_dir = vim.fn.getcwd() .. "/.nvim"
 	local timer_file = nvim_dir .. "/.nvim_timer_data.json"
 
@@ -39,7 +39,7 @@ local function get_timer_file()
 end
 
 function M.save_timer()
-	local timer_file = get_timer_file()
+	local timer_file = M.get_timer_file()
 	local data = { timer_count = M.timer }
 	if M.should_save then
 		vim.fn.writefile({ vim.json.encode(data) }, timer_file)
@@ -47,7 +47,7 @@ function M.save_timer()
 end
 
 function M.load_timer()
-	local timer_file = get_timer_file()
+	local timer_file = M.get_timer_file()
 	if vim.fn.filereadable(timer_file) == 1 then
 		local data = vim.json.decode(vim.fn.readfile(timer_file)[1])
 		M.timer = data.timer_count or 0
