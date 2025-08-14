@@ -1,11 +1,29 @@
 local M = {}
+
 M.timer_count = 0
 M.uv_timer = nil
 M.current_time = "00:00"
 M.timer_active = false
 M.should_save = true
+M.should_log = true
+M.log_file = vim.fn.stdpath("cache") .. "/chronos.log"
+
+function M.log(msg)
+	local file = io.open(M.log_file, "a")
+	if not M.should_log then
+		return
+	end
+
+	if file then
+		file:write(msg .. "\n")
+		file.close()
+	else
+		print("[Chronos] Failed to write to file " .. M.log_file)
+	end
+end
 
 function M.setup()
+	M.log(string.format("Plugin stated: %s, cwd: %s", os.date("%H:%M:%S"), vim.fn.getcwd()))
 	M.load_timer()
 	M.start_timer()
 
@@ -17,18 +35,26 @@ function M.setup()
 
 	vim.api.nvim_create_autocmd("FocusLost", {
 		callback = function()
-			M.stop_timer()
+			M.log(string.format("FocusLost: %s", os.date("%H:%M:%S")))
+			if M.is_tmux_session_active() == 1 then
+				M.stop_timer()
+			end
 		end,
 	})
 
 	vim.api.nvim_create_autocmd("FocusGained", {
 		callback = function()
+			M.log(string.format("FocusGained: %s", os.date("%H:%M:%S")))
 			M.start_timer()
 		end,
 	})
 
 	vim.api.nvim_create_user_command("ChronosDisableSave", function()
 		M.should_save = false
+	end, {})
+
+	vim.api.nvim_create_user_command("ChronosEnableLogging", function()
+		M.should_save = true
 	end, {})
 end
 
@@ -60,6 +86,7 @@ function M.save_timer()
 	if M.should_save then
 		vim.fn.writefile({ vim.json.encode(data) }, timer_file)
 	end
+	M.log(string.format("Saved time: %d", M.timer_count))
 end
 
 function M.load_timer()
@@ -68,6 +95,7 @@ function M.load_timer()
 		local data = vim.json.decode(vim.fn.readfile(timer_file)[1])
 		M.timer_count = data.timer_count or 0
 	end
+	M.log(string.format("Loaded time: %d", M.timer_count))
 end
 
 function M.get_plugin_dir()
@@ -90,6 +118,7 @@ function M.is_tmux_session_active()
 		handle:close()
 	end
 
+	M.log(string.format("Tmux active: %d", tonumber(result)))
 	return tonumber(result)
 end
 
@@ -104,10 +133,7 @@ function M.start_timer()
 				require("lualine").refresh()
 			end)
 		)
-		vim.schedule(function()
-			print(string.format("Timer started at: %s | Count: %d", os.date("%H:%M:%S"), M.timer_count))
-			io.flush()
-		end)
+		M.log(string.format("Timer started at: %s | Count: %d", os.date("%H:%M:%S"), M.timer_count))
 		M.timer_active = true
 	end
 end
@@ -120,13 +146,11 @@ function M.stop_timer()
 		M.uv_timer = nil
 	end
 
-	if M.is_tmux_session_active() == 1 then
-		M.timer_active = false
-		vim.schedule(function()
-			print(string.format("Timer stopped at: %s | Count: %d", os.date("%H:%M:%S"), M.timer_count))
-			io.flush()
-		end)
-	end
+	M.timer_active = false
+	-- vim.schedule(function()
+	-- 	io.flush()
+	-- end)
+	M.log(string.format("Timer stopped at: %s | Count: %d", os.date("%H:%M:%S"), M.timer_count))
 end
 
 return M
